@@ -25,8 +25,12 @@ export async function setupVite(app: Express, server: Server) {
     const url = req.originalUrl;
 
     try {
+      // Safely get the directory, handling both ESM and bundled code
+      const currentDir = typeof import.meta.dirname !== "undefined" 
+        ? import.meta.dirname 
+        : path.dirname(new URL(import.meta.url).pathname);
       const clientTemplate = path.resolve(
-        import.meta.dirname,
+        currentDir,
         "../..",
         "client",
         "index.html"
@@ -48,14 +52,29 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  const distPath =
-    process.env.NODE_ENV === "development"
-      ? path.resolve(import.meta.dirname, "../..", "dist", "public")
-      : path.resolve(import.meta.dirname, "public");
+  // In production (bundled code), use process.cwd() since import.meta.dirname may be undefined
+  // In development, try import.meta.dirname first, fallback to process.cwd()
+  let distPath: string;
+  if (process.env.NODE_ENV === "development") {
+    try {
+      // Try to use import.meta.dirname if available
+      const currentDir = typeof import.meta.dirname !== "undefined" 
+        ? import.meta.dirname 
+        : path.dirname(new URL(import.meta.url).pathname);
+      distPath = path.resolve(currentDir, "../..", "dist", "public");
+    } catch {
+      distPath = path.resolve(process.cwd(), "dist", "public");
+    }
+  } else {
+    // Production: always use process.cwd()
+    distPath = path.resolve(process.cwd(), "dist", "public");
+  }
+  
   if (!fs.existsSync(distPath)) {
     console.error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`
     );
+    return;
   }
 
   app.use(express.static(distPath));
