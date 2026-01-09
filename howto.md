@@ -91,6 +91,29 @@ docker run -p 3000:3000 --env-file .env yt-slide-extractor
 
 ## Local Development
 
+### Understanding Local vs Docker
+
+**Important:** `pnpm run dev` runs **locally on your machine** and **does NOT use Docker** at all.
+
+- **Local Development (`pnpm run dev`):**
+  - Runs directly on your host machine
+  - Uses source files from your project directory
+  - Uses `tsx` to run TypeScript directly (no build step)
+  - Uses Vite dev server for frontend (hot reload)
+  - Connects to MySQL (which might be in Docker, but the app itself is not)
+
+- **Docker (`docker-compose up` or `docker build`):**
+  - Runs inside a Docker container
+  - Uses built/compiled code
+  - Isolated environment
+  - Used for production or testing containerized setup
+
+**When to use each:**
+- **Local (`pnpm run dev`):** For development, debugging, hot reload
+- **Docker:** For production deployment, testing container setup, CI/CD
+
+**Note:** Your MySQL database can be in Docker while your app runs locally - they communicate via `localhost:3306`.
+
 ### Initial Setup
 
 1. **Install pnpm:**
