@@ -774,6 +774,30 @@ curl http://localhost:3000/api/trpc/system.health
 
 ---
 
+## Server Status Messages
+
+When you start the server with `pnpm run dev`, you may see:
+
+```
+[OAuth] Initialized with baseURL: 
+[OAuth] ERROR: OAUTH_SERVER_URL is not configured! Set OAUTH_SERVER_URL environment variable.
+Server running on http://localhost:3000/
+```
+
+**This is normal and expected** if you're not using OAuth authentication. The server will still run, but authentication features will be disabled.
+
+**To suppress the warning:**
+- Leave OAuth variables empty (current setup) - warning will appear but server works
+- Or add empty OAuth variables to .env:
+  ```env
+  OAUTH_SERVER_URL=
+  VITE_APP_ID=
+  VITE_OAUTH_PORTAL_URL=
+  ```
+
+**To enable OAuth:**
+- Fill in the OAuth variables in your .env file (see ENV_SETUP.md)
+
 **Last Updated:** 2025-01-09
 
 ## How to Find MySQL Root Password
