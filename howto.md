@@ -378,14 +378,84 @@ These are embedded at build time.
 
 ## Database Management
 
+### Finding MySQL Root Password
+
+**For Docker MySQL Container:**
+
+The MySQL root password is set when you **create** the container. It's whatever you specify in the `-e MYSQL_ROOT_PASSWORD=` parameter.
+
+**To find your current password:**
+
+1. **Check the command you used to create the container:**
+   ```bash
+   # If you used the command from the docs, the password is "rootpassword"
+   docker run --name mysql-yt-slides \
+     -e MYSQL_ROOT_PASSWORD=rootpassword \  # <-- This is your password
+     ...
+   ```
+
+2. **Check container environment variables:**
+   ```bash
+   docker inspect mysql-yt-slides | grep -i MYSQL_ROOT_PASSWORD
+   ```
+
+3. **Check your .env file:**
+   ```bash
+   # The password in DATABASE_URL should match
+   cat .env | grep DATABASE_URL
+   # Example: mysql://root:rootpassword@localhost:3306/yt_slides
+   #                                    ^^^^^^^^^^^^ this is the password
+   ```
+
+**If you forgot the password:**
+
+You can reset it or create a new container:
+
+```bash
+# Option 1: Reset password in existing container
+docker exec -it mysql-yt-slides mysql -u root -p
+# Enter current password (or try common ones: rootpassword, root, password)
+
+# If you can't access, create new container:
+docker stop mysql-yt-slides
+docker rm mysql-yt-slides
+docker run --name mysql-yt-slides \
+  -e MYSQL_ROOT_PASSWORD=your_new_password \  # Choose your password
+  -e MYSQL_DATABASE=yt_slides \
+  -p 3306:3306 \
+  -d mysql:8
+
+# Update .env file
+DATABASE_URL=mysql://root:your_new_password@localhost:3306/yt_slides
+```
+
+**For Local MySQL Installation:**
+
+If you installed MySQL locally (not Docker), the password was set during installation:
+- **macOS (Homebrew):** Usually no password by default, or check installation notes
+- **Linux:** Set during `mysql_secure_installation`
+- **Windows:** Set during MySQL installation wizard
+
+To reset local MySQL root password:
+```bash
+# Stop MySQL service
+sudo systemctl stop mysql  # Linux
+brew services stop mysql   # macOS
+
+# Start MySQL in safe mode and reset password
+# (See MySQL documentation for your OS)
+```
+
 ### Initial Setup
 
 ```bash
 # Create database (if using local MySQL)
 mysql -u root -p
+# Enter your MySQL root password when prompted
 CREATE DATABASE yt_slides;
 
 # Or use Docker MySQL (see Quick Start)
+# Password is set when creating container: -e MYSQL_ROOT_PASSWORD=your_password
 
 # Run migrations
 pnpm run db:push
@@ -705,3 +775,37 @@ curl http://localhost:3000/api/trpc/system.health
 ---
 
 **Last Updated:** 2025-01-09
+
+## How to Find MySQL Root Password
+
+### For Your Current Setup:
+
+Your MySQL Docker container password is: **rootpassword**
+
+You can verify this by running:
+```bash
+docker inspect mysql-yt-slides | grep MYSQL_ROOT_PASSWORD
+```
+
+Your .env file should have:
+```
+DATABASE_URL=mysql://root:rootpassword@localhost:3306/yt_slides
+```
+
+### Quick Commands:
+
+**Check container password:**
+```bash
+docker inspect mysql-yt-slides | grep MYSQL_ROOT_PASSWORD
+```
+
+**Check .env password:**
+```bash
+cat .env | grep DATABASE_URL
+```
+
+**Test connection:**
+```bash
+docker exec -it mysql-yt-slides mysql -uroot -prootpassword
+```
+
